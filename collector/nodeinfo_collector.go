@@ -3,6 +3,7 @@ package collector
 import (
 	"strconv"
 
+	"github.com/go-kit/log"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -13,10 +14,12 @@ type NodeInfoCollector struct {
 	NodeInfos *prometheus.Desc
 	OsInfos   *prometheus.Desc
 	JvmInfos  *prometheus.Desc
+
+	logger log.Logger
 }
 
 // NewNodeInfoCollector function
-func NewNodeInfoCollector(logstashEndpoint string) (Collector, error) {
+func NewNodeInfoCollector(logstashEndpoint string, logger log.Logger) (Collector, error) {
 	const subsystem = "info"
 
 	return &NodeInfoCollector{
@@ -42,12 +45,14 @@ func NewNodeInfoCollector(logstashEndpoint string) (Collector, error) {
 			[]string{"name", "version", "vendor"},
 			nil,
 		),
+
+		logger: logger,
 	}, nil
 }
 
 // Collect function implements nodestats_collector collector
 func (c *NodeInfoCollector) Collect(ch chan<- prometheus.Metric) error {
-	stats, err := NodeInfo(c.endpoint)
+	stats, err := NodeInfo(c.endpoint, c.logger)
 	if err != nil {
 		return err
 	}

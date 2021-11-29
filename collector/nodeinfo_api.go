@@ -1,5 +1,9 @@
 package collector
 
+import (
+	"github.com/go-kit/log"
+)
+
 // NodeInfoResponse type
 type NodeInfoResponse struct {
 	Host        string `json:"host"`
@@ -38,14 +42,14 @@ type NodeInfoResponse struct {
 }
 
 // NodeInfo function
-func NodeInfo(endpoint string) (NodeInfoResponse, error) {
+func NodeInfo(endpoint string, logger log.Logger) (NodeInfoResponse, error) {
 	var response NodeInfoResponse
 
 	handler := &HTTPHandler{
 		Endpoint: endpoint + "/_node",
 	}
 
-	err := getMetrics(handler, &response)
+	err := getMetrics(handler, &response, logger)
 
 	return response, err
 }

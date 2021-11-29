@@ -1,6 +1,7 @@
 package collector
 
 import (
+	"github.com/go-kit/log"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -58,10 +59,12 @@ type NodeStatsCollector struct {
 	PipelineQueueSizeInBytes  *prometheus.Desc
 
 	PipelineDeadLetterQueueSizeInBytes *prometheus.Desc
+
+	logger log.Logger
 }
 
 // NewNodeStatsCollector function
-func NewNodeStatsCollector(logstashEndpoint string) (Collector, error) {
+func NewNodeStatsCollector(logstashEndpoint string, logger log.Logger) (Collector, error) {
 	const subsystem = "node"
 
 	return &NodeStatsCollector{
@@ -353,12 +356,13 @@ func NewNodeStatsCollector(logstashEndpoint string) (Collector, error) {
 			[]string{"pipeline"},
 			nil,
 		),
+		logger: logger,
 	}, nil
 }
 
 // Collect function implements nodestats_collector collector
 func (c *NodeStatsCollector) Collect(ch chan<- prometheus.Metric) error {
-	stats, err := NodeStats(c.endpoint)
+	stats, err := NodeStats(c.endpoint, c.logger)
 	if err != nil {
 		ch <- prometheus.MustNewConstMetric(
 			c.Up,

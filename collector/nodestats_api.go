@@ -1,5 +1,9 @@
 package collector
 
+import (
+	"github.com/go-kit/log"
+)
+
 // Pipeline type
 type Pipeline struct {
 	Events struct {
@@ -144,14 +148,14 @@ type NodeStatsResponse struct {
 }
 
 // NodeStats function
-func NodeStats(endpoint string) (NodeStatsResponse, error) {
+func NodeStats(endpoint string, logger log.Logger) (NodeStatsResponse, error) {
 	var response NodeStatsResponse
 
 	handler := &HTTPHandler{
 		Endpoint: endpoint + "/_node/stats",
 	}
 
-	err := getMetrics(handler, &response)
+	err := getMetrics(handler, &response, logger)
 
 	return response, err
 }
