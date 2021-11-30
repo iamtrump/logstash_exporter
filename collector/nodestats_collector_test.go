@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/go-kit/log"
+	"github.com/prometheus/common/promlog"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -394,6 +396,13 @@ var dlQueueJSON = []byte(`
 }
 `)
 
+var logger log.Logger
+
+func init() {
+	promlogConfig := &promlog.Config{}
+	logger = promlog.New(promlogConfig)
+}
+
 type MockHTTPHandler struct {
 	ReturnJSON []byte
 }
@@ -416,7 +425,7 @@ func TestPipelineNoQueueStats(t *testing.T) {
 	var response NodeStatsResponse
 
 	m := &MockHTTPHandler{ReturnJSON: noQueueJSON}
-	err := getMetrics(m, &response)
+	err := getMetrics(m, &response, logger)
 
 	assert.Nil(t, err)
 	assert.Nil(t, response.Pipeline.Plugins.Outputs[0].Documents)
@@ -427,7 +436,7 @@ func TestPipelineElasticSearchOutputStats(t *testing.T) {
 	var response NodeStatsResponse
 
 	m := &MockHTTPHandler{ReturnJSON: elasticSearchOutputJSON}
-	err := getMetrics(m, &response)
+	err := getMetrics(m, &response, logger)
 
 	assert.Nil(t, err)
 	assert.Equal(t, 865539, response.Pipeline.Plugins.Outputs[0].Documents.Successes)
@@ -441,7 +450,7 @@ func TestPipelineQueueStats(t *testing.T) {
 	var response NodeStatsResponse
 
 	m := &MockHTTPHandler{ReturnJSON: queueJSON}
-	err := getMetrics(m, &response)
+	err := getMetrics(m, &response, logger)
 
 	assert.Nil(t, err)
 	assert.Equal(t, 132, response.Pipeline.Queue.EventsCount)
@@ -453,7 +462,7 @@ func TestPipelineDLQueueStats(t *testing.T) {
 	var response NodeStatsResponse
 
 	m := &MockHTTPHandler{ReturnJSON: dlQueueJSON}
-	err := getMetrics(m, &response)
+	err := getMetrics(m, &response, logger)
 
 	assert.Nil(t, err)
 	assert.Equal(t, 1337, response.Pipeline.DeadLetterQueue.QueueSizeInBytes)
@@ -463,7 +472,7 @@ func TestErrorConnectionToLogstash(t *testing.T) {
 	var response NodeStatsResponse
 
 	m := &MockHTTPErrorHandler{}
-	err := getMetrics(m, &response)
+	err := getMetrics(m, &response, logger)
 
 	assert.NotNil(t, err)
 }

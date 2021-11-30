@@ -45,13 +45,13 @@ type LogstashCollector struct {
 func NewLogstashCollector(logstashEndpoint string) (*LogstashCollector, error) {
 	nodeStatsCollector, err := collector.NewNodeStatsCollector(logstashEndpoint, logger)
 	if err != nil {
-		level.Error(logger).Log("msg", "Cannot register a new collector", "err", err)
+		_ = level.Error(logger).Log("msg", "Cannot register a new collector", "err", err)
 		os.Exit(1)
 	}
 
 	nodeInfoCollector, err := collector.NewNodeInfoCollector(logstashEndpoint, logger)
 	if err != nil {
-		level.Error(logger).Log("msg", "Cannot register a new collector", "err", err)
+		_ = level.Error(logger).Log("msg", "Cannot register a new collector", "err", err)
 		os.Exit(1)
 	}
 
@@ -69,10 +69,10 @@ func listen() {
 		http.Redirect(w, r, "/metrics", http.StatusMovedPermanently)
 	})
 
-	level.Info(logger).Log("msg", "Starting server", "bind_address", exporterBindAddress)
+	_ = level.Info(logger).Log("msg", "Starting server", "bind_address", exporterBindAddress)
 	server := &http.Server{Addr: *exporterBindAddress}
 	if err := web.ListenAndServe(server, *configFile, logger); err != nil {
-		level.Error(logger).Log("err", err)
+		_ = level.Error(logger).Log("err", err)
 		os.Exit(1)
 	}
 }
@@ -103,10 +103,10 @@ func execute(name string, c collector.Collector, ch chan<- prometheus.Metric) {
 	var result string
 
 	if err != nil {
-		level.Debug(logger).Log("msg", "Collector failed", "name", name, "duration", duration.Seconds(), "err", err)
+		_ = level.Debug(logger).Log("msg", "Collector failed", "name", name, "duration", duration.Seconds(), "err", err)
 		result = "error"
 	} else {
-		level.Debug(logger).Log("msg", "Collector succeeded", "name", name, "duration", duration.Seconds())
+		_ = level.Debug(logger).Log("msg", "Collector succeeded", "name", name, "duration", duration.Seconds())
 		result = "success"
 	}
 	scrapeDurations.WithLabelValues(name, result).Observe(duration.Seconds())
@@ -131,13 +131,13 @@ func init() {
 func main() {
 	logstashCollector, err := NewLogstashCollector(*logstashEndpoint)
 	if err != nil {
-		level.Error(logger).Log("msg", "Cannot register a new Logstash Collector", "err", err)
+		_ = level.Error(logger).Log("msg", "Cannot register a new Logstash Collector", "err", err)
 		os.Exit(1)
 	}
 
 	prometheus.MustRegister(logstashCollector)
 
-	level.Info(logger).Log("msg", "Starting Logstash exporter", "version", version.Info())
-	level.Info(logger).Log("msg", "Build context", "build_context", version.BuildContext())
+	_ = level.Info(logger).Log("msg", "Starting Logstash exporter", "version", version.Info())
+	_ = level.Info(logger).Log("msg", "Build context", "build_context", version.BuildContext())
 	listen()
 }
