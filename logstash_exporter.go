@@ -16,6 +16,8 @@ import (
 	"github.com/prometheus/common/version"
 	"github.com/sequra/logstash_exporter/collector"
 	"gopkg.in/alecthomas/kingpin.v2"
+
+	"github.com/prometheus/exporter-toolkit/web"
 )
 
 var (
@@ -31,6 +33,7 @@ var (
 	logger              log.Logger
 	logstashEndpoint    *string
 	exporterBindAddress *string
+	configFile          *string
 )
 
 // LogstashCollector collector type
@@ -60,16 +63,17 @@ func NewLogstashCollector(logstashEndpoint string) (*LogstashCollector, error) {
 	}, nil
 }
 
-func listen(exporterBindAddress string) {
+func listen() {
 	http.Handle("/metrics", promhttp.Handler())
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/metrics", http.StatusMovedPermanently)
 	})
 
 	level.Info(logger).Log("msg", "Starting server", "bind_address", exporterBindAddress)
-	if err := http.ListenAndServe(exporterBindAddress, nil); err != nil {
-		level.Error(logger).Log("msg", "Cannot start Logstash exporter", "err", err)
-    os.Exit(1)
+	server := &http.Server{Addr: *exporterBindAddress}
+	if err := web.ListenAndServe(server, *configFile, logger); err != nil {
+		level.Error(logger).Log("err", err)
+		os.Exit(1)
 	}
 }
 
@@ -113,6 +117,7 @@ func init() {
 
 	logstashEndpoint = kingpin.Flag("logstash.endpoint", "The protocol, host and port on which logstash metrics API listens").Default("http://localhost:9600").String()
 	exporterBindAddress = kingpin.Flag("web.listen-address", "Address on which to expose metrics and web interface.").Default(":9198").String()
+	configFile = kingpin.Flag("web.config", "[EXPERIMENTAL] Path to config yaml file that can enable TLS or authentication.").Default("").String()
 
 	promlogConfig := &promlog.Config{}
 	flag.AddFlags(kingpin.CommandLine, promlogConfig)
@@ -134,5 +139,5 @@ func main() {
 
 	level.Info(logger).Log("msg", "Starting Logstash exporter", "version", version.Info())
 	level.Info(logger).Log("msg", "Build context", "build_context", version.BuildContext())
-	listen(*exporterBindAddress)
+	listen()
 }
