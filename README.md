@@ -35,6 +35,7 @@ Flags:
                           API listens
       --web.listen-address=":9198"
                           Address on which to expose metrics and web interface.
+      --web.config=""     [EXPERIMENTAL] Path to config yaml file that can enable TLS or authentication.
       --log.level="info"  Only log messages with the given severity or above.
                           Valid levels: [debug, info, warn, error, fatal]
       --log.format="logger:stderr"
