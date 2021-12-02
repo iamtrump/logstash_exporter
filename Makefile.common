@@ -72,7 +72,7 @@ endif
 
 PROMU_VERSION ?= 0.2.0
 PROMU_URL     := https://github.com/prometheus/promu/releases/download/v$(PROMU_VERSION)/promu-$(PROMU_VERSION).$(GO_BUILD_PLATFORM).tar.gz
-STATICCHECK_VERSION ?= 2019.2.3
+STATICCHECK_VERSION ?= 2021.1.2
 
 PREFIX                  ?= $(shell pwd)
 BIN_DIR                 ?= $(shell pwd)
